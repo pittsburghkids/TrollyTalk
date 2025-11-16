@@ -11,6 +11,7 @@
 #define ENCODER_Z_PIN 11
 
 #define BUTTON_PIN 5
+#define LED_PIN 6
 
 #define RESOLUTION 4000
 
@@ -30,6 +31,10 @@ void encoderZInterruptHandler() {
 
 void setup() {
   Serial.begin(115200);
+
+  // Lignt setup.
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   // Encoder setup.
   {
@@ -61,6 +66,7 @@ void setup() {
     wavTriggerControl.stopAllTracks();
     wavTriggerControl.samplerateOffset(0);
     wavTriggerControl.setReporting(true);
+    
   }
 }
 
@@ -89,7 +95,14 @@ void loop() {
 
     if (button.pressed()) {
       Serial.println(selection);
-      wavTriggerControl.trackPlaySolo(selection + 1);
+      wavTriggerControl.trackStop(selection + 1);
+      wavTriggerControl.trackPlayPoly(selection + 1);
+    }
+
+    if (button.isPressed()) {
+      digitalWrite(LED_PIN, HIGH);
+    } else {
+      digitalWrite(LED_PIN, LOW);
     }
   }
 }
