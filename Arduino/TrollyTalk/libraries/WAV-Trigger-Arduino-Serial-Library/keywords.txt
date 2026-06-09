@@ -1,4 +1,0 @@
-wavTrigger	KEYWORD1
-active	KEYWORD2
-overflow	KEYWORD2
-library_version	KEYWORD2
