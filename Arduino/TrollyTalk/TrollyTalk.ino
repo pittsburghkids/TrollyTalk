@@ -27,7 +27,7 @@ byte lastSelection = 0;
 int count;
 int lastCount;
 
-float pressTime = millis();
+unsigned long pressTime = 0;
 
 void encoderZInterruptHandler()
 {
@@ -38,7 +38,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  // Lignt setup.
+  // Light setup.
   {
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
@@ -77,19 +77,27 @@ void loop()
   {
     count = encoder.getCount();
 
-    lastCount = count;
-    if (count < 0)
-      count = RESOLUTION + count;
-
-    selection = (byte)((float)count / (RESOLUTION + 1) * OPTION_COUNT);
-
-    int isEven = selection % 2;
-    digitalWrite(LED_PIN, isEven ? HIGH : LOW);
-
-    if (selection != lastSelection)
+    /// Only update on encoder change.
+    if (count != lastCount)
     {
-      Serial.println(selection);
-      lastSelection = selection;
+      // Convert negative counts to positive counts.
+      int unsignedCount = (count < 0) ? RESOLUTION + count : count;
+
+      // Map the count to a selection value between 0 and OPTION_COUNT - 1.
+      selection = (byte)((float)count / (RESOLUTION + 1) * OPTION_COUNT);
+
+      // Update the LED state based on the selection value.
+      int isEven = selection % 2;
+      digitalWrite(LED_PIN, isEven ? HIGH : LOW);
+
+      // Only update on selection change.
+      if (selection != lastSelection)
+      {
+        Serial.println(selection);
+        lastSelection = selection;
+      }
+
+      lastCount = count;
     }
   }
 
@@ -116,9 +124,11 @@ void loop()
     }
   }
 
-  if (millis() - pressTime < FADE_DURATION)
+  // Light fade.
+  unsigned long elapsed = millis() - pressTime;
+  if (elapsed < (unsigned long)FADE_DURATION)
   {
-    float t = (millis() - pressTime) / FADE_DURATION;
+    float t = elapsed / FADE_DURATION;
     int brightness = (int)((1 - t) * MAX_BRIGHTNESS);
     analogWrite(LIGHT_EXTERIOR_PIN, brightness);
     analogWrite(LIGHT_INTERIOR_PIN, brightness);
