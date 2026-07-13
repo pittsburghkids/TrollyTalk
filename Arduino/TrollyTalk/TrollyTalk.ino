@@ -80,11 +80,11 @@ void loop()
     /// Only update on encoder change.
     if (count != lastCount)
     {
-      // Convert negative counts to positive counts.
-      int unsignedCount = (count < 0) ? RESOLUTION + count : count;
+      // Wrap the count into one revolution (0 to RESOLUTION - 1).
+      int position = ((count % RESOLUTION) + RESOLUTION) % RESOLUTION;
 
-      // Map the count to a selection value between 0 and OPTION_COUNT - 1.
-      selection = (byte)((float)count / (RESOLUTION + 1) * OPTION_COUNT);
+      // Map the position to a selection value (0 to OPTION_COUNT - 1).
+      selection = (byte)(position * OPTION_COUNT / RESOLUTION);
 
       // Update the LED state based on the selection value.
       int isEven = selection % 2;
@@ -111,7 +111,10 @@ void loop()
       Serial1.print(selection + 1);
       Serial1.print('\r');
       Serial1.flush();
-      delay(100);
+
+      // Delay may not be needed here.
+      // delay(100);
+
       Serial1.print("play ");
       Serial1.print(selection + 1);
       Serial1.print('\r');
